@@ -124,7 +124,7 @@ public class EthereumPayoutHandler : PayoutHandlerBase,
                         var gasUsed = blockHashResponse.Response.GasUsed;
 
                         var burnedFee = (decimal) 0;
-                        if(extraPoolConfig?.ChainTypeOverride == "Ethereum" || extraPoolConfig?.ChainTypeOverride == "Main" || extraPoolConfig?.ChainTypeOverride == "MainPow" || extraPoolConfig?.ChainTypeOverride == "EtherOne" || extraPoolConfig?.ChainTypeOverride == "Pink")
+                        if(extraPoolConfig?.ChainTypeOverride == "Ethereum" || extraPoolConfig?.ChainTypeOverride == "Main" || extraPoolConfig?.ChainTypeOverride == "MainPow" || extraPoolConfig?.ChainTypeOverride == "EtherOne" || extraPoolConfig?.ChainTypeOverride == "Flora")
                             burnedFee = (baseGas * gasUsed / EthereumConstants.Wei);
 
                         block.Hash = blockHash;
@@ -250,7 +250,7 @@ public class EthereumPayoutHandler : PayoutHandlerBase,
         // ensure we have peers
         var infoResponse = await rpcClient.ExecuteAsync<string>(logger, EC.GetPeerCount, ct);
 
-        if((networkType == EthereumNetworkType.Main || networkType == EthereumNetworkType.MainPow || extraPoolConfig?.ChainTypeOverride == "EtherOne" || extraPoolConfig?.ChainTypeOverride == "Pink") &&
+        if((networkType == EthereumNetworkType.Main || networkType == EthereumNetworkType.MainPow || extraPoolConfig?.ChainTypeOverride == "EtherOne" || extraPoolConfig?.ChainTypeOverride == "Flora") &&
            (infoResponse.Error != null || string.IsNullOrEmpty(infoResponse.Response) ||
                infoResponse.Response.IntegralFromHex<int>() < EthereumConstants.MinPayoutPeerCount))
         {
@@ -331,8 +331,8 @@ public class EthereumPayoutHandler : PayoutHandlerBase,
             case GethChainType.EtherOne:
                 return EthOneConstants.BaseRewardInitial;
 
-            case GethChainType.Pink:
-               return PinkConstants.BaseRewardInitial;
+            case GethChainType.Flora:
+               return FloraConstants.BaseRewardInitial;
 
             case GethChainType.Callisto:
                 return CallistoConstants.BaseRewardInitial * (CallistoConstants.TreasuryPercent / 100);
@@ -421,16 +421,17 @@ public class EthereumPayoutHandler : PayoutHandlerBase,
         }
 
         RpcResponse<string> response;
-        if(extraPoolConfig?.ChainTypeOverride == "Pink")
+        if(extraPoolConfig?.ChainTypeOverride == "Flora")
         {
-            var requestPink = new SendTransactionRequestPink
+            var requestFlora = new SendTransactionRequestFlora
             {
                 From = poolConfig.Address,
                 To = balance.Address,
                 Value = amount.ToString("x").TrimStart('0'),
-                Gas = extraConfig.Gas
+                Gas = extraConfig.Gas,
+				chainId: 10500
             };
-            response = await rpcClient.ExecuteAsync<string>(logger, EC.SendTx, ct, new[] { requestPink });
+            response = await rpcClient.ExecuteAsync<string>(logger, EC.SendTx, ct, new[] { requestFlora });
         }
         else {
             response = await rpcClient.ExecuteAsync<string>(logger, EC.SendTx, ct, new[] { request });
